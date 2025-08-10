@@ -43776,46 +43776,121 @@ var FusionService = class _FusionService {
     this.weatherService = new WeatherService();
   }
   async getFusedData(characterId) {
+    if (characterId) {
+      return this.getSingleCharacterData(characterId);
+    } else {
+      return this.getCharactersList();
+    }
+  }
+  async getSingleCharacterData(characterId) {
     const cacheKey = `CHARACTER#${characterId}`;
     const cachedData = await this.getCachedData(cacheKey);
-    if (cachedData && cachedData.data) {
+    if (cachedData?.data) {
+      return { ...cachedData.data, metadata: { ...cachedData.data.metadata, cached: true } };
+    }
+    try {
+      const characterIdNum = parseInt(characterId, 10);
+      if (isNaN(characterIdNum) || characterIdNum < 1) {
+        throw new Error("Invalid character ID. Must be a positive number.");
+      }
+      const character = await swapiService.getCharacter(characterIdNum);
+      const homeworldUrl = character.homeworld;
+      const homeworldId = homeworldUrl.split("/").filter(Boolean).pop();
+      const homeworld = await swapiService.getPlanet(parseInt(homeworldId || "1", 10));
+      const location = PLANET_TO_LOCATION[homeworld.name] || { city: "London", countryCode: "GB" };
+      const weather = await this.weatherService.getWeatherByCity(location.city, location.countryCode);
+      const result = {
+        character: {
+          name: character.name,
+          height: character.height,
+          mass: character.mass,
+          gender: character.gender,
+          birth_year: character.birth_year,
+          homeworld: homeworld.name
+        },
+        homeworld: {
+          name: homeworld.name,
+          climate: homeworld.climate,
+          terrain: homeworld.terrain,
+          population: homeworld.population
+        },
+        weather: {
+          location: `${location.city}, ${location.countryCode}`,
+          temperature: weather.main.temp,
+          condition: weather.weather[0]?.description || "Unknown",
+          humidity: weather.main.humidity,
+          windSpeed: weather.wind.speed
+        },
+        metadata: {
+          cached: false,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        }
+      };
+      await this.cacheData(cacheKey, result);
+      return result;
+    } catch (error) {
+      console.error(`Error getting character data for ID ${characterId}:`, error);
+      throw new Error(`Failed to fetch character data: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  }
+  async getCharactersList() {
+    const cacheKey = "CHARACTERS_LIST";
+    const cachedData = await this.getCachedData(cacheKey);
+    if (cachedData?.data) {
       return cachedData.data;
     }
-    const characterIdNum = parseInt(characterId, 10);
-    const character = await swapiService.getCharacter(characterIdNum);
-    const homeworldUrl = character.homeworld;
-    const homeworldId = homeworldUrl.split("/").filter(Boolean).pop();
-    const homeworld = await swapiService.getPlanet(parseInt(homeworldId || "1", 10));
-    const location = PLANET_TO_LOCATION[homeworld.name] || { city: "London", countryCode: "GB" };
-    const weather = await this.weatherService.getWeatherByCity(location.city, location.countryCode);
-    const result = {
-      character: {
-        name: character.name,
-        height: character.height,
-        mass: character.mass,
-        gender: character.gender,
-        birth_year: character.birth_year
-      },
-      homeworld: {
-        name: homeworld.name,
-        climate: homeworld.climate,
-        terrain: homeworld.terrain,
-        population: homeworld.population
-      },
-      weather: {
-        location: `${location.city}, ${location.countryCode}`,
-        temperature: weather.main.temp,
-        condition: weather.weather[0]?.description || "Unknown",
-        humidity: weather.main.humidity,
-        windSpeed: weather.wind.speed
-      },
-      metadata: {
-        cached: false,
-        timestamp: (/* @__PURE__ */ new Date()).toISOString()
-      }
-    };
-    await this.cacheData(cacheKey, result);
-    return result;
+    try {
+      const defaultLocation = PLANET_TO_LOCATION["Tatooine"] || { city: "London", countryCode: "GB" };
+      const weather = await this.weatherService.getWeatherByCity(defaultLocation.city, defaultLocation.countryCode);
+      const characterList = await swapiService.getCharacters();
+      const results = await Promise.all(
+        characterList.results.map(async (character) => {
+          const homeworldId = character.homeworld.split("/").filter(Boolean).pop();
+          let homeworldName = "Unknown";
+          try {
+            const homeworldCacheKey = `PLANET#${homeworldId}`;
+            const cachedHomeworld = await this.getCachedData(homeworldCacheKey);
+            if (cachedHomeworld?.data?.name) {
+              homeworldName = cachedHomeworld.data.name;
+            } else {
+              const planet = await swapiService.getPlanet(parseInt(homeworldId, 10));
+              homeworldName = planet.name;
+              await this.cacheData(homeworldCacheKey, { name: planet.name });
+            }
+          } catch (error) {
+            console.error(`Error fetching homeworld ${homeworldId}:`, error);
+          }
+          return {
+            name: character.name,
+            height: character.height,
+            mass: character.mass,
+            gender: character.gender,
+            birth_year: character.birth_year,
+            homeworld: homeworldName,
+            url: character.url
+          };
+        })
+      );
+      const result = {
+        count: characterList.count,
+        next: characterList.next,
+        previous: characterList.previous,
+        results,
+        weather: {
+          location: `${defaultLocation.city}, ${defaultLocation.countryCode}`,
+          temperature: weather.main.temp,
+          condition: weather.weather[0]?.description || "Unknown"
+        },
+        metadata: {
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        }
+      };
+      await this.cacheData(cacheKey, result, 300);
+      return result;
+    } catch (error) {
+      console.error("Error getting characters list:", error);
+      throw new Error(`Failed to fetch characters list: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
   }
   async getCachedData(key) {
     try {
@@ -43832,9 +43907,9 @@ var FusionService = class _FusionService {
       return null;
     }
   }
-  async cacheData(key, data) {
+  async cacheData(key, data, customTtl) {
     try {
-      const ttl = Math.floor(Date.now() / 1e3) + _FusionService.CACHE_TTL;
+      const ttl = Math.floor(Date.now() / 1e3) + (customTtl || _FusionService.CACHE_TTL);
       await DynamoDBService.putItemStatic({
         PK: key,
         SK: "DATA",
@@ -43842,14 +43917,16 @@ var FusionService = class _FusionService {
         ttl,
         type: "CACHE"
       });
-      await DynamoDBService.putItemStatic({
-        PK: `HISTORY#${Date.now()}`,
-        SK: key,
-        data,
-        ttl: Math.floor(Date.now() / 1e3) + 60 * 60 * 24 * 30,
-        // 30 days TTL for history
-        type: "HISTORY"
-      });
+      if (key.startsWith("CHARACTER#")) {
+        await DynamoDBService.putItemStatic({
+          PK: `HISTORY#${Date.now()}`,
+          SK: key,
+          data,
+          ttl: Math.floor(Date.now() / 1e3) + 60 * 60 * 24 * 30,
+          // 30 days TTL for history
+          type: "HISTORY"
+        });
+      }
     } catch (error) {
       console.error("Error caching data:", error);
     }
@@ -43862,22 +43939,65 @@ var fusionService2 = new FusionService();
 var handler = async (event) => {
   try {
     const characterId = event.pathParameters?.characterId;
-    if (!characterId) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ success: false, message: "Character ID is required" })
-      };
+    if (characterId) {
+      const id = parseInt(characterId, 10);
+      if (isNaN(id) || id < 1) {
+        return {
+          statusCode: 400,
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": "true"
+          },
+          body: JSON.stringify({
+            success: false,
+            message: "Invalid character ID. Must be a positive number."
+          })
+        };
+      }
     }
     const result = await fusionService2.getFusedData(characterId);
+    const cacheControl = result?.metadata?.cached ? "public, max-age=300" : "no-cache";
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, data: result })
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": cacheControl,
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true
+      },
+      body: JSON.stringify({
+        success: true,
+        data: result,
+        metadata: {
+          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+          cached: result?.metadata?.cached || false
+        }
+      })
     };
   } catch (error) {
     console.error("Error in getCombinedData:", error);
+    const errorMessage = error instanceof Error ? error.message : "Internal server error";
+    let statusCode = 500;
+    if (errorMessage.includes("Not Found") || errorMessage.includes("404")) {
+      statusCode = 404;
+    } else if (errorMessage.includes("Invalid") || errorMessage.includes("must be")) {
+      statusCode = 400;
+    }
     return {
-      statusCode: 500,
-      body: JSON.stringify({ success: false, message: error })
+      statusCode,
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-cache",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true
+      },
+      body: JSON.stringify({
+        success: false,
+        message: errorMessage,
+        requestId: event.requestContext?.requestId || "unknown"
+      })
     };
   }
 };

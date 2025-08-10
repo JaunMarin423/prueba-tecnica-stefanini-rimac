@@ -28661,20 +28661,15 @@ var DynamoDBService = class _DynamoDBService {
 var handler = async (event) => {
   try {
     const { limit, nextToken } = getPaginationParams(event);
-    const result = await DynamoDBService.queryByType(
-      "HISTORY",
-      limit,
-      nextToken
-    );
-    const items = result.items.map((item) => ({
-      id: item.SK.replace("CUSTOM#", ""),
+    const items = await DynamoDBService.queryItems("CUSTOM_DATA", limit);
+    const formattedItems = items.map((item) => ({
+      id: item.PK.replace("CUSTOM#", ""),
       ...item.data,
       createdAt: item.createdAt
     }));
     return successResponse({
-      items,
-      nextToken: result.nextToken,
-      count: items.length
+      items: formattedItems,
+      count: formattedItems.length
     });
   } catch (error) {
     console.error("Error in getHistory:", error);

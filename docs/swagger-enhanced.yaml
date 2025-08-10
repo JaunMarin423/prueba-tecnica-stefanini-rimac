@@ -1,0 +1,611 @@
+openapi: 3.0.0
+info:
+  title: API Star Wars + Clima
+  description: |
+    API que combina datos de personajes de Star Wars con información meteorológica.
+    
+    ## Códigos de Estado HTTP
+    - 200: Operación exitosa
+    - 400: Solicitud incorrecta (parámetros inválidos)
+    - 404: Recurso no encontrado
+    - 500: Error interno del servidor
+    
+    ## Autenticación
+    No se requiere autenticación para los endpoints públicos.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/dev
+    description: Servidor de desarrollo local
+  - url: https://api.tudominio.com/prod
+    description: Servidor de producción
+
+tags:
+  - name: Personajes
+    description: Operaciones relacionadas con personajes de Star Wars
+  - name: Almacenamiento
+    description: Operaciones de almacenamiento personalizado
+  - name: Historial
+    description: Consulta del historial de operaciones
+
+paths:
+  /fusionados:
+    get:
+      tags:
+        - Personajes
+      summary: Obtiene la lista de todos los personajes con datos meteorológicos
+      description: Retorna una lista paginada de personajes con información básica y datos meteorológicos generales.
+      parameters:
+        - name: limit
+          in: query
+          description: Número de resultados por página
+          required: false
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+        - name: page
+          in: query
+          description: Número de página
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+      responses:
+        '200':
+          description: Lista de personajes recuperada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterListResponse'
+              example:
+                success: true
+                data:
+                  - id: 1
+                    name: "Luke Skywalker"
+                    height: "172"
+                    mass: "77"
+                    homeworld: "Tatooine"
+                    weather:
+                      temp: 25.5
+                      condition: "Clear"
+                      humidity: 40
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Error interno del servidor"
+                code: "INTERNAL_SERVER_ERROR"
+                details: "No se pudo recuperar la lista de personajes"
+
+  /fusionados/{characterId}:
+    get:
+      tags:
+        - Personajes
+      summary: Obtiene un personaje específico con datos meteorológicos
+      description: Retorna información detallada de un personaje específico junto con datos meteorológicos de su planeta de origen.
+      parameters:
+        - name: characterId
+          in: path
+          required: true
+          description: ID del personaje (1-83)
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+      responses:
+        '200':
+          description: Datos del personaje recuperados exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterResponse'
+              example:
+                success: true
+                data:
+                  id: 1
+                  name: "Luke Skywalker"
+                  height: "172"
+                  mass: "77"
+                  hair_color: "blond"
+                  skin_color: "fair"
+                  eye_color: "blue"
+                  birth_year: "19BBY"
+                  gender: "male"
+                  homeworld: "Tatooine"
+                  films: ["A New Hope", "The Empire Strikes Back", "Return of the Jedi"]
+                  species: ["Human"]
+                  vehicles: ["Snowspeeder", "Imperial Speeder Bike"]
+                  starships: ["X-wing", "Imperial shuttle"]
+                  created: "2014-12-09T13:50:51.644000Z"
+                  edited: "2014-12-20T21:17:56.891000Z"
+                  url: "https://swapi.dev/api/people/1/"
+                  weather:
+                    temp: 25.5
+                    feels_like: 26.2
+                    temp_min: 24.0
+                    temp_max: 27.0
+                    pressure: 1012
+                    humidity: 40
+                    condition: "Clear"
+                    wind_speed: 3.6
+                    wind_deg: 200
+                    clouds: 0
+                    timestamp: "2025-08-09T22:30:00Z"
+        '400':
+          description: ID de personaje inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "ID de personaje inválido"
+                code: "INVALID_CHARACTER_ID"
+                details: "El ID debe ser un número entero positivo"
+        '404':
+          description: Personaje no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Personaje no encontrado"
+                code: "CHARACTER_NOT_FOUND"
+                details: "No se encontró ningún personaje con el ID proporcionado"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Error interno del servidor"
+                code: "INTERNAL_SERVER_ERROR"
+                details: "No se pudo recuperar la información del personaje"
+
+  /almacenar:
+    post:
+      tags:
+        - Almacenamiento
+      summary: Almacena datos personalizados
+      description: Permite almacenar información personalizada en la base de datos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreDataRequest'
+            example:
+              id: "ejemplo-123"
+              data:
+                nombre: "Ejemplo"
+                activo: true
+                valor: 123.45
+      responses:
+        '201':
+          description: Datos almacenados exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoreDataResponse'
+              example:
+                success: true
+                message: "Datos almacenados correctamente"
+                id: "ejemplo-123"
+        '400':
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error: "Datos de entrada inválidos"
+                code: "INVALID_INPUT"
+                details: "El campo 'id' es requerido"
+
+  /historial:
+    get:
+      tags:
+        - Historial
+      summary: Obtiene el historial de consultas
+      description: Retorna un historial de las consultas realizadas al sistema, ordenado cronológicamente.
+      parameters:
+        - name: limit
+          in: query
+          description: Número de resultados por página
+          required: false
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+        - name: startDate
+          in: query
+          description: Fecha de inicio para filtrar resultados (formato ISO 8601)
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          description: Fecha de fin para filtrar resultados (formato ISO 8601)
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Historial recuperado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryResponse'
+              example:
+                success: true
+                data:
+                  - id: "550e8400-e29b-41d4-a716-446655440000"
+                    type: "CHARACTER_QUERY"
+                    characterId: 1
+                    timestamp: "2025-08-09T20:15:30Z"
+                    status: "SUCCESS"
+                    responseTime: 450
+                  - id: "550e8400-e29b-41d4-a716-446655440001"
+                    type: "WEATHER_QUERY"
+                    location: "Tatooine"
+                    timestamp: "2025-08-09T20:10:15Z"
+                    status: "SUCCESS"
+                    responseTime: 320
+                pagination:
+                  total: 2
+                  page: 1
+                  limit: 10
+                  totalPages: 1
+
+components:
+  schemas:
+    CharacterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica si la operación fue exitosa
+          example: true
+        data:
+          $ref: '#/components/schemas/Character'
+    
+    CharacterListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica si la operación fue exitosa
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CharacterBasic'
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Número total de resultados
+              example: 82
+            page:
+              type: integer
+              description: Página actual
+              example: 1
+            limit:
+              type: integer
+              description: Número de resultados por página
+              example: 10
+            totalPages:
+              type: integer
+              description: Número total de páginas
+              example: 9
+    
+    CharacterBasic:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Luke Skywalker"
+        height:
+          type: string
+          example: "172"
+        mass:
+          type: string
+          example: "77"
+        homeworld:
+          type: string
+          example: "Tatooine"
+        weather:
+          $ref: '#/components/schemas/WeatherDataSimple'
+    
+    Character:
+      allOf:
+        - $ref: '#/components/schemas/CharacterBasic'
+        - type: object
+          properties:
+            hair_color:
+              type: string
+              example: "blond"
+            skin_color:
+              type: string
+              example: "fair"
+            eye_color:
+              type: string
+              example: "blue"
+            birth_year:
+              type: string
+              example: "19BBY"
+            gender:
+              type: string
+              example: "male"
+            films:
+              type: array
+              items:
+                type: string
+              example: ["A New Hope", "The Empire Strikes Back"]
+            species:
+              type: array
+              items:
+                type: string
+              example: ["Human"]
+            vehicles:
+              type: array
+              items:
+                type: string
+              example: ["Snowspeeder", "Imperial Speeder Bike"]
+            starships:
+              type: array
+              items:
+                type: string
+              example: ["X-wing", "Imperial shuttle"]
+            created:
+              type: string
+              format: date-time
+              example: "2014-12-09T13:50:51.644000Z"
+            edited:
+              type: string
+              format: date-time
+              example: "2014-12-20T21:17:56.891000Z"
+            url:
+              type: string
+              format: uri
+              example: "https://swapi.dev/api/people/1/"
+            weather:
+              $ref: '#/components/schemas/WeatherData'
+    
+    WeatherDataSimple:
+      type: object
+      properties:
+        temp:
+          type: number
+          format: float
+          example: 25.5
+        condition:
+          type: string
+          example: "Clear"
+        humidity:
+          type: integer
+          example: 40
+    
+    WeatherData:
+      allOf:
+        - $ref: '#/components/schemas/WeatherDataSimple'
+        - type: object
+          properties:
+            feels_like:
+              type: number
+              format: float
+              example: 26.2
+            temp_min:
+              type: number
+              format: float
+              example: 24.0
+            temp_max:
+              type: number
+              format: float
+              example: 27.0
+            pressure:
+              type: integer
+              example: 1012
+            wind_speed:
+              type: number
+              format: float
+              example: 3.6
+            wind_deg:
+              type: integer
+              example: 200
+            clouds:
+              type: integer
+              example: 0
+            timestamp:
+              type: string
+              format: date-time
+              example: "2025-08-09T22:30:00Z"
+    
+    StoreDataRequest:
+      type: object
+      required:
+        - id
+        - data
+      properties:
+        id:
+          type: string
+          description: Identificador único para los datos a almacenar
+          example: "ejemplo-123"
+        data:
+          type: object
+          description: Datos personalizados a almacenar
+          additionalProperties: true
+          example:
+            nombre: "Ejemplo"
+            activo: true
+            valor: 123.45
+    
+    StoreDataResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Datos almacenados correctamente"
+        id:
+          type: string
+          example: "ejemplo-123"
+    
+    HistoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryItem'
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 2
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 10
+            totalPages:
+              type: integer
+              example: 1
+    
+    HistoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        type:
+          type: string
+          enum: ["CHARACTER_QUERY", "WEATHER_QUERY", "STORAGE_OPERATION"]
+          example: "CHARACTER_QUERY"
+        characterId:
+          type: integer
+          nullable: true
+          example: 1
+        location:
+          type: string
+          nullable: true
+          example: "Tatooine"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-08-09T20:15:30Z"
+        status:
+          type: string
+          enum: ["SUCCESS", "ERROR", "CACHED"]
+          example: "SUCCESS"
+        responseTime:
+          type: integer
+          description: Tiempo de respuesta en milisegundos
+          example: 450
+    
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Descripción del error
+          example: "Personaje no encontrado"
+        code:
+          type: string
+          description: Código de error único
+          example: "CHARACTER_NOT_FOUND"
+        details:
+          type: string
+          description: Detalles adicionales del error
+          example: "No se encontró ningún personaje con el ID proporcionado"
+      required:
+        - success
+        - error
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Clave API para autenticación (si es necesario en el futuro)
+
+security:
+  - ApiKeyAuth: []  # Aplicar seguridad globalmente (opcional)
+
+externalDocs:
+  description: Documentación de la API de Star Wars (SWAPI)
+  url: https://swapi.dev/documentation
+
+  
+# Códigos de error estándar
+errors:
+  # Errores 4xx
+  INVALID_INPUT:
+    description: "Los datos de entrada no son válidos"
+    status: 400
+  UNAUTHORIZED:
+    description: "No autorizado"
+    status: 401
+  FORBIDDEN:
+    description: "No tiene permisos para realizar esta acción"
+    status: 403
+  NOT_FOUND:
+    description: "Recurso no encontrado"
+    status: 404
+  METHOD_NOT_ALLOWED:
+    description: "Método HTTP no permitido"
+    status: 405
+  
+  # Errores 5xx
+  INTERNAL_SERVER_ERROR:
+    description: "Error interno del servidor"
+    status: 500
+  SERVICE_UNAVAILABLE:
+    description: "Servicio no disponible"
+    status: 503
+  
+  # Errores personalizados
+  INVALID_CHARACTER_ID:
+    description: "ID de personaje inválido"
+    status: 400
+  CHARACTER_NOT_FOUND:
+    description: "Personaje no encontrado"
+    status: 404
+  WEATHER_SERVICE_ERROR:
+    description: "Error al consultar el servicio meteorológico"
+    status: 502
+  DATABASE_ERROR:
+    description: "Error al acceder a la base de datos"
+    status: 500
+  RATE_LIMIT_EXCEEDED:
+    description: "Se ha excedido el límite de solicitudes"
+    status: 429

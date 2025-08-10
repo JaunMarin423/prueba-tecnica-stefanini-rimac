@@ -9,23 +9,18 @@ export const handler = async (
     const { limit, nextToken } = getPaginationParams(event);
     
     // Query history items from DynamoDB
-    const result = await DynamoDBService.queryByType(
-      'HISTORY',
-      limit,
-      nextToken
-    );
+    const items = await DynamoDBService.queryItems('CUSTOM_DATA', limit);
     
     // Format the response
-    const items = result.items.map(item => ({
-      id: item.SK.replace('CUSTOM#', ''),
+    const formattedItems = items.map(item => ({
+      id: item.PK.replace('CUSTOM#', ''),
       ...item.data,
       createdAt: item.createdAt,
     }));
     
     return successResponse({
-      items,
-      nextToken: result.nextToken,
-      count: items.length,
+      items: formattedItems,
+      count: formattedItems.length,
     });
   } catch (error) {
     console.error('Error in getHistory:', error);

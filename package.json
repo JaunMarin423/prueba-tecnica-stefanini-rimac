@@ -6,6 +6,8 @@
     "start": "serverless offline start",
     "offline": "serverless offline start",
     "offline:real": "node -r dotenv/config node_modules/serverless/bin/serverless offline start",
+    "docs:serve": "node swagger-server.js",
+    "docs:generate": "node scripts/generate-docs.js",
     "test": "jest --verbose --runInBand --detectOpenHandles",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
@@ -14,6 +16,15 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.864.0",
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "swagger-ui-express": "^5.0.1",
+    "yamljs": "^0.3.0"
+  },
   "devDependencies": {
     "@aws-sdk/lib-dynamodb": "^3.864.0",
     "@serverless/typescript": "^4.18.0",
@@ -23,9 +34,12 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.2.1",
     "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
     "aws-sdk-client-mock": "^4.1.0",
     "cross-env": "^7.0.3",
     "dynamodb-local": "^0.0.35",
+    "eslint": "^9.33.0",
     "jest": "^30.0.5",
     "serverless-dynamodb-local": "^0.2.40",
     "serverless-esbuild": "^1.55.1",
@@ -35,11 +49,6 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.2"
-  },
-  "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.864.0",
-    "axios": "^1.11.0",
-    "dotenv": "^17.2.1"
   },
   "type": "commonjs"
 }

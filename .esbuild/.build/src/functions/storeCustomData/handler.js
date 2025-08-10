@@ -28669,7 +28669,7 @@ var handler = async (event) => {
       createdAt: timestamp,
       updatedAt: timestamp
     };
-    await DynamoDBService.putItem(item);
+    await DynamoDBService.putItemStatic(item);
     return successResponse({
       id: itemId,
       ...data,

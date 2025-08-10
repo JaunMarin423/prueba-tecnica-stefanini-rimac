@@ -69,14 +69,25 @@ API RESTful que combina datos de personajes de Star Wars con información meteor
 
 ### Acceso a la Documentación
 
-1. **Iniciar el servidor de documentación** (en otra terminal):
+1. **Iniciar el servidor de documentación** (en una terminal nueva):
    ```bash
-   npx http-server -p 8080 --cors
+   npm run docs:serve
    ```
 
-2. **Abrir Swagger UI**:
+2. **Abrir la documentación interactiva** en tu navegador:
    ```
-   https://petstore.swagger.io/?url=http://localhost:8080/docs/swagger.yaml
+   http://localhost:3001/api-docs
+   ```
+
+   La documentación incluye:
+   - Descripción detallada de todos los endpoints
+   - Esquemas de solicitud/respuesta
+   - Posibilidad de probar los endpoints directamente
+   - Códigos de estado y mensajes de error
+
+3. **Acceso al archivo YAML** (opcional):
+   ```
+   http://localhost:3001/swagger.yaml
    ```
 
 ### Endpoints Disponibles
