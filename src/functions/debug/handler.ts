@@ -4,10 +4,10 @@ import { DynamoDBService } from '../../services/dynamodb.service';
 export const handler: APIGatewayProxyHandler = async () => {
   try {
     // Get all cached items
-    const { items: cachedItems } = await DynamoDBService.scanTable(100);
+    const cachedItems = await DynamoDBService.getInstance().scanItems(100);
     
     // Get history items
-    const { items: historyItems } = await DynamoDBService.queryByType('HISTORY', 100);
+    const historyItems = await DynamoDBService.getInstance().queryItems('HISTORY', 100);
 
     return {
       statusCode: 200,

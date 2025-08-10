@@ -42,7 +42,7 @@ describe('DynamoDBService - Static Initialization', () => {
     
     // Try to import the service
     expect(() => {
-      DynamoDBService = require('../../../../src/services/dynamodb.service').DynamoDBService;
+      DynamoDBService = require('../../../src/services/dynamodb.service').DynamoDBService;
       console.log('Successfully imported DynamoDBService');
     }).not.toThrow();
     
@@ -52,7 +52,7 @@ describe('DynamoDBService - Static Initialization', () => {
   
   it('should initialize static fields', () => {
     console.log('Testing static field initialization');
-    const { DynamoDBService } = require('../../../../src/services/dynamodb.service');
+    const { DynamoDBService } = require('../../../src/services/dynamodb.service');
     
     // Access a static field to trigger initialization
     expect(() => {
@@ -68,7 +68,7 @@ describe('DynamoDBService - Static Initialization', () => {
     const { DynamoDBDocumentClient } = require('@aws-sdk/lib-dynamodb');
     
     // Import the service but don't create an instance yet
-    const { DynamoDBService } = require('../../../../src/services/dynamodb.service');n
+    const { DynamoDBService } = require('../../../src/services/dynamodb.service');
     // Verify the client hasn't been created yet
     expect(DynamoDBDocumentClient.from).not.toHaveBeenCalled();
     

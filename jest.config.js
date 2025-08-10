@@ -1,23 +1,21 @@
 module.exports = {
   testEnvironment: 'node',
   verbose: true,
-  // Only run tests in specific directories that we know have valid tests
+  // Run both unit and integration tests
   testMatch: [
-    '**/test/unit/services/dynamodb.test.ts',
-    '**/test/unit/services/dynamodb.simple.test.ts'
+    '**/test/unit/**/*.test.ts',
+    '**/test/integration/*.test.ts'
   ],
-  // Ignore all other test files for now
+  // Setup files run before tests
+  setupFilesAfterEnv: ['<rootDir>/test/setup-integration.ts'],
+  // Ignore specific test files
   testPathIgnorePatterns: [
     '/node_modules/',
-    '/src/functions/',  // Temporarily ignore all function tests
-    '/test/unit/services/__mocks__/',  // Ignore mocks
-    '/test/unit/services/fusion.service.test.ts',  // Known failing test
-    '/test/unit/services/minimal-put.test.ts',  // Empty test file
-    '/test/__mocks__/',  // Ignore mock files
-    '/test/setup.ts',    // Ignore setup files
-    '/test/setup-tests.ts',
-    '/test/test-utils.ts',
-    '/test/test-environment.js',
+    '/test/unit/__mocks__/',
+    '/test/unit/services/__mocks__/',
+    // Keep these patterns but clean them up
+    '/test/unit/services/fusion.service.test.ts',
+    '/test/unit/services/minimal-put.test.ts',
     '/test/unit/services/dynamodb-mock.test.ts',
     '/test/unit/services/dynamodb.stepbystep.test.ts',
     '/test/unit/services/dynamodb.static.test.ts',

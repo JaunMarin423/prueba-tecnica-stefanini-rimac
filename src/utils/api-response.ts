@@ -29,12 +29,17 @@ export const errorResponse = (
   }),
 });
 
-export const getPaginationParams = (event: { queryStringParameters?: Record<string, string> | null }) => {
-  const limit = event.queryStringParameters?.limit ? parseInt(event.queryStringParameters.limit, 10) : 10;
+import { APIGatewayProxyEvent } from 'aws-lambda';
+
+export const getPaginationParams = (event: APIGatewayProxyEvent) => {
+  const limit = event.queryStringParameters?.limit 
+    ? parseInt(event.queryStringParameters.limit, 10) 
+    : 10;
+  
   const nextToken = event.queryStringParameters?.nextToken;
   
   return {
     limit: Math.min(limit, 100), // Cap at 100 items per page
-    nextToken,
+    nextToken: nextToken || undefined, // Ensure nextToken is undefined instead of null
   };
 };

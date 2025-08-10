@@ -15,7 +15,7 @@ import {
   type DeleteCommandInput,
   type DeleteCommandOutput
 } from '@aws-sdk/lib-dynamodb';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -152,7 +152,7 @@ export class DynamoDBService implements IDynamoDBService, IDynamoDBServiceStatic
     this.tableName = process.env.DYNAMODB_TABLE || 'stefanini-rimac-api-dev';
   }
 
-  private static getInstance(): DynamoDBService {
+  public static getInstance(): DynamoDBService {
     if (!DynamoDBService.instance) {
       DynamoDBService.instance = new DynamoDBService();
     }

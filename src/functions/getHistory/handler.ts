@@ -6,14 +6,14 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const { limit, nextToken } = getPaginationParams(event);
+    const { limit } = getPaginationParams(event);
     
-    // Query history items from DynamoDB
-    const items = await DynamoDBService.queryItems('CUSTOM_DATA', limit);
+    // Get history items using the DynamoDBService instance
+    const items = await DynamoDBService.getInstance().queryItems('HISTORY', limit);
     
     // Format the response
     const formattedItems = items.map(item => ({
-      id: item.PK.replace('CUSTOM#', ''),
+      id: item.PK.replace('HISTORY#', ''),
       ...item.data,
       createdAt: item.createdAt,
     }));

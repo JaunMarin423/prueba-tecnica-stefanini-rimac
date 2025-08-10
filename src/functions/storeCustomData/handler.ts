@@ -26,6 +26,9 @@ export const handler = async (
       SK: 'METADATA',
       data,
       type: 'CUSTOM_DATA',
+      ttl: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30), // 30 days from now
+      GSI1PK: 'CUSTOM_DATA',
+      GSI1SK: timestamp,
       createdAt: timestamp,
       updatedAt: timestamp,
     };
