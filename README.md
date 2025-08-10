@@ -65,6 +65,56 @@ API RESTful que combina datos de personajes de Star Wars con información meteor
    ```
    El servidor estará disponible en `http://localhost:3000`
 
+## 🧪 Pruebas
+
+### Pruebas Unitarias
+
+Para ejecutar las pruebas unitarias:
+
+```bash
+# Ejecutar todas las pruebas
+npm test
+
+# Ejecutar pruebas en modo watch
+npm run test:watch
+
+# Generar reporte de cobertura
+npm run test:coverage
+```
+
+### Pruebas de Integración
+
+Para probar los endpoints de la API localmente:
+
+1. **Iniciar el servidor en modo desarrollo**:
+   ```bash
+   npm run dev
+   ```
+
+2. **Probar endpoints con curl o Postman**:
+
+   - **Obtener datos de un personaje**:
+     ```bash
+     curl http://localhost:3000/dev/fusionados/1
+     ```
+
+   - **Depurar caché**:
+     ```bash
+     curl http://localhost:3000/dev/debug/cache
+     ```
+
+   - **Almacenar datos personalizados (POST)**:
+     ```bash
+     curl -X POST http://localhost:3000/dev/almacenar \
+       -H "Content-Type: application/json" \
+       -d '{"name":"Test", "value":42}'
+     ```
+
+   - **Ver historial**:
+     ```bash
+     curl http://localhost:3000/dev/historial
+     ```
+
 ## 📚 Documentación de la API
 
 ### Acceso a la Documentación
