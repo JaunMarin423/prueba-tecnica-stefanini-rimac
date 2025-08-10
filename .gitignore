@@ -1,0 +1,141 @@
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
+
+# Entorno
+.env
+.env.*
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Directorios de desarrollo
+.cache/
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# Serverless
+.serverless/
+.serverless_plugins/
+
+# DynamoDB Local
+.DynamoDB/
+dynamodb_local/
+
+# Cobertura
+yarn.lock
+package-lock.json
+
+# Build
+build/
+dist/
+*.tsbuildinfo
+
+# Archivos temporales
+*.tmp
+*.bak
+*.backup
+
+# Archivos de sistema operativo
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Archivos de entorno virtual
+venv/
+env/
+
+# Archivos de configuración local
+local.*
+
+# Archivos de depuración
+*.log
+
+# Archivos de entorno de desarrollo
+.env.development
+.env.test
+.env.production
+
+# Archivos de configuración de IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Archivos de configuración de Windows
+[Dd]esktop.ini
+Thumbs.db
+
+# Archivos de configuración de macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Archivos de configuración de Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Archivos de configuración de Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Archivos de configuración de WebStorm
+.idea/
+
+# Archivos de configuración de Node.js
+.npm
+.eslintcache
+
+# Serverless Framework
+.serverless/
+.serverless_plugins/
+
+# Archivos de caché de TypeScript
+*.tsbuildinfo
+
+# Archivos de configuración de pruebas
+coverage/
+.nyc_output/
+
+# Archivos de configuración de AWS
+.aws/
+
+# Archivos de configuración de Serverless Framework
+.serverless/
+.serverless_plugins/
+
+# Archivos de configuración de DynamoDB Local
+.dynamodb/
+
+# Archivos de configuración de OpenAPI/Swagger
+docs/swagger.yaml
+
+# Archivos de configuración de Node.js
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp*
